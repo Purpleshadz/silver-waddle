@@ -31,17 +31,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session
-app.use(session({
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'changeme',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production'
   }
-}));
+};
+
+if (process.env.MONGODB_URI) {
+  sessionConfig.store = MongoStore.create({ mongoUrl: process.env.MONGODB_URI });
+}
+
+app.use(session(sessionConfig));
 
 // General rate limiter — applied to all routes
 app.use(rateLimit({
