@@ -1,0 +1,82 @@
+<div class="row">
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><%= isNew ? 'New Dashboard' : 'Edit Dashboard' %></h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="<%= isNew ? '/dashboards' : '/dashboards/' + dashboard._id %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" name="title" value="<%= dashboard.title %>" required />
+          </div>
+          <div class="mb-3 form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              name="isDefault"
+              id="isDefault"
+              <%= dashboard.isDefault ? 'checked' : '' %>
+            />
+            <label class="form-check-label" for="isDefault">Set as default dashboard</label>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><%= isNew ? 'Create' : 'Save' %></button>
+            <a href="/dashboards" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if (!isNew) { %>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Widgets</h4>
+    <a href="/dashboards/<%= dashboard._id %>/widgets/new" class="btn btn-success btn-sm">+ Add Widget</a>
+  </div>
+
+  <% if (!dashboard.widgets || dashboard.widgets.length === 0) { %>
+    <div class="alert alert-info">No widgets yet. <a href="/dashboards/<%= dashboard._id %>/widgets/new">Add one</a>.</div>
+  <% } else { %>
+    <table class="table table-bordered bg-white">
+      <thead class="table-secondary">
+        <tr>
+          <th>Title</th>
+          <th>Measurement</th>
+          <th>Field</th>
+          <th>Tag</th>
+          <th>Date Range</th>
+          <th>Chart</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% dashboard.widgets.forEach(function(widget) { %>
+          <tr>
+            <td><%= widget.title || '—' %></td>
+            <td><code><%= widget.measurement || '—' %></code></td>
+            <td><code><%= widget.field || '—' %></code></td>
+            <td>
+              <% if (widget.tagKey && widget.tagValue) { %>
+                <code><%= widget.tagKey %>=<%= widget.tagValue %></code>
+              <% } else { %>
+                <span class="text-muted">—</span>
+              <% } %>
+            </td>
+            <td><%= widget.dateRange || '-1h' %></td>
+            <td><%= widget.chartType || 'line' %></td>
+            <td>
+              <form method="POST" action="/dashboards/<%= dashboard._id %>/widgets/<%= widget._id %>/delete"
+                    class="d-inline"
+                    onsubmit="return confirm('Delete this widget?');">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+<% } %>

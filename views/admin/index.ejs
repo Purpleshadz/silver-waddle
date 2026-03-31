@@ -1,0 +1,50 @@
+<h2 class="mb-4">⚙️ Admin Panel</h2>
+
+<div class="row mb-4">
+  <div class="col-md-4 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h1 class="display-4 text-primary"><%= userCount %></h1>
+        <p class="card-text text-muted">Total Users</p>
+        <a href="/admin/users" class="btn btn-outline-primary btn-sm">Manage Users</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h1 class="display-4 text-success"><%= orgCount %></h1>
+        <p class="card-text text-muted">Total Organisations</p>
+        <a href="/admin/orgs" class="btn btn-outline-success btn-sm">Manage Orgs</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h1 class="display-4 text-warning"><%= dashboardCount %></h1>
+        <p class="card-text text-muted">Total Dashboards</p>
+        <a href="/dashboards" class="btn btn-outline-warning btn-sm">View Dashboards</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="list-group shadow-sm">
+      <a href="/admin/users" class="list-group-item list-group-item-action">
+        👤 Manage Users
+      </a>
+      <a href="/admin/users/new" class="list-group-item list-group-item-action">
+        ➕ Create New User
+      </a>
+      <a href="/admin/orgs" class="list-group-item list-group-item-action">
+        🏢 Manage Organisations
+      </a>
+      <a href="/admin/orgs/new" class="list-group-item list-group-item-action">
+        ➕ Create New Organisation
+      </a>
+    </div>
+  </div>
+</div>

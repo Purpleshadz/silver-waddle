@@ -1,0 +1,62 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Dashboards
+    <% if (activeOrgObj) { %>
+      <small class="text-muted fs-5">— <%= activeOrgObj.name %></small>
+    <% } %>
+  </h2>
+  <a href="/dashboards/new" class="btn btn-primary">+ New Dashboard</a>
+</div>
+
+<% if (!activeOrg) { %>
+  <div class="alert alert-warning">Please select an organisation first.</div>
+<% } else if (dashboards.length === 0) { %>
+  <div class="alert alert-info">
+    No dashboards yet. <a href="/dashboards/new">Create one</a>.
+  </div>
+<% } else { %>
+  <table class="table table-bordered table-hover bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>Title</th>
+        <th>Default?</th>
+        <th>Widgets</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% dashboards.forEach(function(db) { %>
+        <tr>
+          <td>
+            <% if (db.isDefault) { %>
+              <a href="/" class="fw-bold text-decoration-none"><%= db.title %></a>
+            <% } else { %>
+              <strong><%= db.title %></strong>
+            <% } %>
+          </td>
+          <td>
+            <% if (db.isDefault) { %>
+              <span class="badge bg-success">✓ Default</span>
+            <% } else { %>
+              <form method="POST" action="/dashboards/<%= db._id %>" class="d-inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <input type="hidden" name="title" value="<%= db.title %>" />
+                <input type="hidden" name="isDefault" value="on" />
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Set Default</button>
+              </form>
+            <% } %>
+          </td>
+          <td><%= db.widgets ? db.widgets.length : 0 %></td>
+          <td><%= db.createdAt ? new Date(db.createdAt).toLocaleDateString() : '—' %></td>
+          <td>
+            <a href="/dashboards/<%= db._id %>/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+            <form method="POST" action="/dashboards/<%= db._id %>/delete" class="d-inline"
+                  onsubmit="return confirm('Delete dashboard \'<%= db.title %>\'? This cannot be undone.');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>
