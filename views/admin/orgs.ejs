@@ -1,0 +1,84 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>🏢 Organisations</h2>
+  <a href="/admin/orgs/new" class="btn btn-primary">+ New Organisation</a>
+</div>
+
+<%/* Edit form */%>
+<% if (editOrg) { %>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white">Edit Organisation: <%= editOrg.name %></div>
+    <div class="card-body">
+      <form method="POST" action="/admin/orgs/<%= editOrg._id %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" name="name" value="<%= editOrg.name %>" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" name="description" value="<%= editOrg.description || '' %>" />
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a href="/admin/orgs" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+<% } %>
+
+<%/* Create form */%>
+<% if (showForm && !editOrg) { %>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white">New Organisation</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/orgs">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" name="name" required placeholder="e.g. Acme Corp" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description <small class="text-muted">(optional)</small></label>
+          <input type="text" class="form-control" name="description" placeholder="Short description" />
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Create</button>
+          <a href="/admin/orgs" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+<% } %>
+
+<%/* Orgs table */%>
+<% if (orgs.length === 0) { %>
+  <div class="alert alert-info">No organisations yet. <a href="/admin/orgs/new">Create one</a>.</div>
+<% } else { %>
+  <table class="table table-bordered table-hover bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% orgs.forEach(function(org) { %>
+        <tr>
+          <td><strong><%= org.name %></strong></td>
+          <td><%= org.description || '—' %></td>
+          <td><%= org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '—' %></td>
+          <td>
+            <a href="/admin/orgs/<%= org._id %>/edit" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+            <form method="POST" action="/admin/orgs/<%= org._id %>/delete" class="d-inline"
+                  onsubmit="return confirm('Warning: This will permanently delete the organisation and cannot be undone.\n\nDelete \'<%= org.name %>\'?');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>

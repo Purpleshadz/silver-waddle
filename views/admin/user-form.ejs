@@ -1,0 +1,82 @@
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><%= isNew ? 'New User' : 'Edit User: ' + formUser.username %></h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="<%= isNew ? '/admin/users' : '/admin/users/' + formUser._id %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input
+              type="text"
+              class="form-control"
+              name="username"
+              value="<%= formUser.username %>"
+              required
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password<% if (!isNew) { %> <small class="text-muted">(leave blank to keep current)</small><% } %></label>
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              <% if (isNew) { %>required<% } %>
+              autocomplete="new-password"
+              placeholder="<%= isNew ? '' : 'Leave blank to keep current' %>"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select class="form-select" name="role">
+              <option value="admin" <%= formUser.role === 'admin' ? 'selected' : '' %>>admin</option>
+              <% if (user && user.role === 'lead_admin') { %>
+                <option value="lead_admin" <%= formUser.role === 'lead_admin' ? 'selected' : '' %>>lead_admin</option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Organisations</label>
+            <% if (allOrgs.length === 0) { %>
+              <p class="text-muted">No organisations created yet. <a href="/admin/orgs/new">Create one</a>.</p>
+            <% } else { %>
+              <div class="border rounded p-3" style="max-height:200px; overflow-y:auto;">
+                <% allOrgs.forEach(function(org) { %>
+                  <%
+                    const isAssigned = formUser.organizations && formUser.organizations.some(function(o) {
+                      return (o._id ? o._id.toString() : o.toString()) === org._id.toString();
+                    });
+                  %>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="organizations"
+                      value="<%= org._id %>"
+                      id="org-<%= org._id %>"
+                      <%= isAssigned ? 'checked' : '' %>
+                    />
+                    <label class="form-check-label" for="org-<%= org._id %>">
+                      <%= org.name %>
+                    </label>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><%= isNew ? 'Create User' : 'Save Changes' %></button>
+            <a href="/admin/users" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

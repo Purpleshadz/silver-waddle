@@ -1,0 +1,116 @@
+<% if (!user || !activeOrg) { %>
+  <div class="text-center mt-5">
+    <% if (!user) { %>
+      <h2>Welcome to SensorDash</h2>
+      <p class="text-muted"><a href="/login">Please log in</a> to continue.</p>
+    <% } else if (!activeOrg) { %>
+      <h2>No Organisation Selected</h2>
+      <p class="text-muted">You are not assigned to any organisation yet. Ask a lead admin to add you to one.</p>
+      <a href="/admin/orgs/new" class="btn btn-primary">Create an Organisation</a>
+    <% } %>
+  </div>
+<% } else if (!dashboard) { %>
+  <div class="text-center mt-5">
+    <h2>No Dashboard Yet</h2>
+    <p class="text-muted">No dashboards have been created for <strong><%= activeOrgObj ? activeOrgObj.name : 'this organisation' %></strong>.</p>
+    <a href="/dashboards/new" class="btn btn-primary">Create Dashboard</a>
+    &nbsp;
+    <a href="/dashboards" class="btn btn-outline-secondary">View All Dashboards</a>
+  </div>
+<% } else { %>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><%= dashboard.title %></h2>
+    <div>
+      <span class="badge bg-secondary"><%= activeOrgObj ? activeOrgObj.name : '' %></span>
+      <a href="/dashboards/<%= dashboard._id %>/edit" class="btn btn-sm btn-outline-secondary ms-2">Edit Dashboard</a>
+      <a href="/dashboards" class="btn btn-sm btn-outline-primary ms-1">All Dashboards</a>
+    </div>
+  </div>
+
+  <% if (dashboard.widgets && dashboard.widgets.length > 0) { %>
+    <div class="row">
+      <% dashboard.widgets.forEach(function(widget) { %>
+        <div class="col-md-6 mb-4">
+          <div class="card widget-card shadow-sm">
+            <div class="card-header d-flex justify-content-between">
+              <strong><%= widget.title || (widget.measurement + ' / ' + widget.field) %></strong>
+              <small class="text-muted"><%= widget.dateRange %></small>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-<%= widget._id %>" height="200"></canvas>
+              <div id="loading-<%= widget._id %>" class="text-center text-muted mt-2">
+                <small>Loading data…</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info">
+      This dashboard has no widgets yet.
+      <a href="/dashboards/<%= dashboard._id %>/edit">Add a widget</a>
+    </div>
+  <% } %>
+
+  <script>
+    const widgets = <%- JSON.stringify(dashboard.widgets) %>;
+
+    async function loadChart(widget) {
+      const loadingEl = document.getElementById('loading-' + widget._id);
+      try {
+        const params = new URLSearchParams({
+          measurement: widget.measurement || '',
+          field: widget.field || '',
+          range: widget.dateRange || '-1h'
+        });
+        if (widget.tagKey && widget.tagValue) {
+          params.append('tagKey', widget.tagKey);
+          params.append('tagValue', widget.tagValue);
+        }
+
+        const resp = await fetch('/api/data?' + params.toString());
+        const data = await resp.json();
+
+        if (loadingEl) loadingEl.style.display = 'none';
+
+        const canvas = document.getElementById('chart-' + widget._id);
+        if (!canvas) return;
+
+        const labels = data.map(d => new Date(d.time).toLocaleTimeString());
+        const values = data.map(d => d.value);
+
+        new Chart(canvas, {
+          type: widget.chartType || 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: widget.field || 'value',
+              data: values,
+              borderColor: 'rgba(13, 110, 253, 0.8)',
+              backgroundColor: widget.chartType === 'bar'
+                ? 'rgba(13, 110, 253, 0.5)'
+                : 'rgba(13, 110, 253, 0.1)',
+              borderWidth: 2,
+              fill: widget.chartType !== 'bar',
+              tension: 0.3,
+              pointRadius: data.length > 100 ? 0 : 2
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { maxTicksLimit: 8 } }
+            }
+          }
+        });
+      } catch (err) {
+        if (loadingEl) loadingEl.textContent = 'Failed to load data.';
+        console.error('Chart load error for widget', widget._id, err);
+      }
+    }
+
+    widgets.forEach(loadChart);
+  </script>
+<% } %>
